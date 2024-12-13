@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Watermark</title>
+  <style>
+    body {
+      background-color: #1a2b2b;
+      color: #00FFFF;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px #000;
+      background-color: rgba(0, 255, 255, 0.2);
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 2em;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+      
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 500px;
+      gap: 20px;
+    }
+    label {
+      margin-bottom: 5px;
+    }
+    input[type="file"], select, input[type="text"], button {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    #file-drop-zone {
+      padding: 40px;
+      border: 2px dashed #00cccc;
+      border-radius: 5px;
+      text-align: center;
+      margin-bottom: 10px; /* Reduced spacing */
+      transition: background-color 0.3s;
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2em;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+    #file-drop-zone.dragover {
+      background-color: #00cccc;
+      color: #121212;
+    }
+    select, input[type="text"] {
+      background-color: #333;
+      color: #00FFFF;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 20px;
+      margin-bottom: 10px; /* Increased spacing */
+    }
+    button {
+      background-color: #00FFFF;
+      color: #121212;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+    }
+    button:disabled {
+      background-color: rgba(0, 204, 204, 0.5); /* Dark cyan with transparency */
+      color: rgba(255, 255, 255, 0.5); /* Light text color */
+    }
+    button small {
+      font-size: 0.8em;
+      font-style: italic;
+      display: block;
+      margin-top: 5px;
+    }
+    button small.progress {
+      margin-top: 10px;
+    }
+    button .progress-bar {
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background-color: #00cccc; /* Cyan color */
+      transition: width 3s linear;
+    }
+    #result {
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 0.5s;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #result.visible {
+      opacity: 1;
+    }
+    .result-box, #choose-another-button {
+      background-color: #008B8B; /* Dark Cyan color */
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .result-box a, #choose-another-button {
+      color: #00FFFF;
+      text-decoration: none;
+      word-wrap: break-word;
+      display: block;
+      margin: 5px 0;
+    }
+    .result-box a:hover, #choose-another-button:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF Watermark</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+
+    <div id="file-drop-zone">
+      <input type="file" id="pdf" name="pdf" accept="application/pdf" required>
+      <div>Drop your PDF here or click to select</div>
+    </div>
+
+    <div>
+      <label for="text">Watermark Text:</label>
+      <select id="predefined-text">
+        <option value="Watermark">Watermark</option>
+        <option value="Krish">Krish</option>
+        <option value="Krish Teckchandani">Krish Teckchandani</option>
+      </select>
+      <input type="text" id="custom-text" name="text" placeholder="Enter custom text" >
+    </div>
+
+    <button id="submit-button" type="submit" disabled>Upload and Watermark
+      <small>Please upload a PDF file to watermark</small>
+      <div class="progress-bar"></div>
+    </button>
+    <button id="choose-another-button" style="display: none;">Choose Another PDF</button>
+    
+  </form>
+  <div id="result"></div>
+
+
+
+
+
+  <script>
+const fileInput = document.getElementById('pdf');
+const fileDropZone = document.getElementById('file-drop-zone');
+const predefinedText = document.getElementById('predefined-text');
+const customText = document.getElementById('custom-text');
+const submitButton = document.getElementById('submit-button');
+const chooseAnotherButton = document.getElementById('choose-another-button');
+const resultDiv = document.getElementById('result');
+
+fileDropZone.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const fileName = fileInput.files[0] ? fileInput.files[0].name : 'No file selected';
+  fileDropZone.querySelector('div').textContent = fileName;
+  if (fileName) {
+    submitButton.disabled = false;
+  } else {
+    submitButton.disabled = true;
+  }
+});
+
+fileDropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  fileDropZone.classList.add('dragover');
+});
+
+fileDropZone.addEventListener('dragleave', () => {
+  fileDropZone.classList.remove('dragover');
+});
+
+fileDropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  fileDropZone.classList.remove('dragover');
+  fileInput.files = e.dataTransfer.files;
+  const fileName = fileInput.files[0] ? fileInput.files[0].name : 'No file selected';
+  fileDropZone.querySelector('div').textContent = fileName;
+  if (fileName) {
+    submitButton.disabled = false;
+  } else {
+    submitButton.disabled = true;
+  }
+});
+
+predefinedText.addEventListener('change', () => {
+  if (predefinedText.value !== 'other') {
+    customText.value = predefinedText.value;
+    
+  } else {
+    customText.value = '';
+  }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  const file = document.getElementById('pdf').files[0];
+  formData.append('pdf', file);
+  formData.append('text', customText.value || predefinedText.value);
+
+  submitButton.disabled = true;
+  submitButton.innerHTML = 'Upload and Watermark<small>Please wait while the PDF file is being watermarked</small><div class="progress-bar"></div>';
+  resultDiv.classList.remove('visible');
+  // Simulating a delay for watermarking process
+  setTimeout(async () => {
+    try {
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      const fileName = file.name.replace('.pdf', '_watermarked.pdf');
+      resultDiv.innerHTML = `
+        <div class="result-box">
+          <a href="${result.url}" target="_blank" download="${fileName}">Download Watermarked PDF</a>
+        </div>
+        <div class="result-box">
+          <a href="${result.url}" target="_blank">View Watermarked PDF</a>
+        </div>`;
+      resultDiv.classList.add('visible');
+      submitButton.innerHTML = 'Upload and Watermark<small>PDF file successfully watermarked</small>';
+      submitButton.disabled = false;
+    } catch (error) {
+      console.error(error);
+      submitButton.innerHTML = 'Upload and Watermark<small>An error occurred while processing the PDF.</small>';
+      submitButton.disabled = false;
+    }
+  }, 3000); // Simulating 3 seconds delay for watermarking
+
+  // Simulating progress bar animation
+  const progressBar = submitButton.querySelector('.progress-bar');
+  let width = 0;
+  const interval = setInterval(() => {
+    if (width >= 100) {
+      clearInterval(interval);
+    } else {
+      width += 1;
+      progressBar.style.width = `${width}%`;
+      submitButton.querySelector('small.progress').textContent = `(${width}%)`;
+    }
+  }, 30); // Adjust the interval duration as needed
+});
+
+chooseAnotherButton.addEventListener('click', () => {
+  resultDiv.innerHTML = '';
+  submitButton.disabled = true;
+  submitButton.innerHTML = 'Upload and Watermark<small>Please upload a PDF file to watermark</small>';
+  chooseAnotherButton.style.display = 'none';
+});
+
+    </script>   
+</body>
+</html>

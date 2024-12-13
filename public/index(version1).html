@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Watermark</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #00FFFF;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+    }
+    label, input, button {
+      margin-bottom: 10px;
+    }
+    input, button {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    input {
+      background-color: #333;
+      color: #00FFFF;
+    }
+    button {
+      background-color: #00FFFF;
+      color: #121212;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00cccc;
+    }
+    #result {
+      margin-top: 20px;
+    }
+    a {
+      color: #00FFFF;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF Watermark</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label for="pdf">Upload PDF:</label>
+    <input type="file" id="pdf" name="pdf" accept="application/pdf" required>
+    <label for="text">Watermark Text:</label>
+    <input type="text" id="text" name="text" required>
+    <button type="submit">Upload and Watermark</button>
+  </form>
+  <div id="result"></div>
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('pdf', document.getElementById('pdf').files[0]);
+      formData.append('text', document.getElementById('text').value);
+
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      document.getElementById('result').innerHTML = `<a href="${result.url}" target="_blank" download>Download Watermarked PDF</a>`;
+    });
+  </script>
+</body>
+</html>
